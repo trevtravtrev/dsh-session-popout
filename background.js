@@ -15,6 +15,10 @@
 /** Hosts the popout is allowed to target (mirrors the manifest match patterns). */
 const ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1']);
 
+/** Popout window geometry: wide enough that the DSH sidebar starts expanded. */
+const WINDOW_WIDTH = 1400;
+const WINDOW_HEIGHT = 950;
+
 /**
  * Validate a popout URL before opening a window for it.
  * @param {string} rawUrl - URL built by the content script from its own origin.
@@ -31,8 +35,22 @@ function isAllowedUrl(rawUrl) {
   }
 }
 
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!message || message.type !== 'dsh-session-popout' || typeof message.url !== 'string') return;
-  if (!isAllowedUrl(message.url)) return;
-  chrome.windows.create({ url: message.url, type: 'popup', focused: true });
+  if (!isAllowedUrl(message.url)) {
+    sendResponse({ ok: false, reason: 'url-not-allowed' });
+    return;
+  }
+  chrome.windows.create(
+    { url: message.url, type: 'popup', focused: true, width: WINDOW_WIDTH, height: WINDOW_HEIGHT },
+    () => {
+      // window creation failures are non-fatal; never spam the console
+      void chrome.runtime.lastError;
+    },
+  );
+  // Always answer so the sender's callback is not left on a closed port —
+  // an unanswered channel reports a runtime.lastError in the content script,
+  // which used to make it ALSO open a normal tab (double-open bug).
+  sendResponse({ ok: true });
+  return; // synchronous response; no need to keep the channel open
 });

@@ -39,6 +39,8 @@ The extension uses no network access, no `tabs`/`storage` permissions, and touch
 ## Compatibility notes
 
 - Tested against DSH `0.2.2-rc.1` sidebar markup (`data-row-key` rows, `[data-sidebar-toggle]`, `aria-expanded` groups/overflow buttons).
+- **First-run "Add an API key / Sign in to DeepSeek" dialog**: DSH shows this in every new browser window when no official DeepSeek credential is configured, even if you use other providers, and it blocks all clicks. The extension dismisses it automatically in popout windows (equivalent to clicking "Configure later"). It is about the DeepSeek AI provider — you do not need a DeepSeek account for the popout to work.
+- Popout windows open at 1400×950 so the sidebar starts expanded instead of collapsing to the narrow rail.
 - If you run the GUI on a remote host (not localhost), add the origin to both `manifest.json` → `content_scripts[].matches` and `background.js` → `ALLOWED_HOSTS`, then reload the extension.
 - Middle-click autoscroll is suppressed only when the press lands on a session row.
 
